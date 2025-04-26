@@ -11,6 +11,7 @@ export const generateSpotifyHeaders = (req: Request) => {
 };
 
 export const getTokens = (req: Request) => {
+  // TODO: after we pass the requests by our server replace this with req.userCredentials
   const accessToken = req.cookies.spotify_access_token;
   const refreshToken = req.cookies.spotify_refresh_token;
 

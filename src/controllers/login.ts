@@ -55,7 +55,7 @@ export const callback = async (req: Request, res: Response) => {
       maxAge: MONTH,
     });
 
-    res.redirect(`${envVariables.beatMatchURL}/register`);
+    res.redirect(`${envVariables.beatMatchURL}/login`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
