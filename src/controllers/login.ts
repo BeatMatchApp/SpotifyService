@@ -52,26 +52,30 @@ export const callback = async (req: Request, res: Response) => {
 export async function refreshToken(req: Request, res: Response) {
   const refreshToken = req.cookies.spotify_refresh_token;
 
-  const response = await axios.post(
-    SPOTIFY_TOKEN_URL,
-    querystring.stringify({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-      client_id: process.env.SPOTIFY_CLIENT_ID!,
-      client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
-    }),
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    }
-  );
+  try {
+    const response = await axios.post(
+      SPOTIFY_TOKEN_URL,
+      querystring.stringify({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: process.env.SPOTIFY_CLIENT_ID!,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET!,
+      }),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      }
+    );
 
-  const { access_token } = response.data;
+    const { access_token } = response.data;
 
-  createTokenCookies(res, access_token);
+    createTokenCookies(res, access_token);
 
-  req.cookies.spotify_access_token = access_token;
+    req.cookies.spotify_access_token = access_token;
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    res.status(400).json({ error: "Failed to refresh spotify's access token" });
+  }
 }
