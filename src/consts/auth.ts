@@ -43,4 +43,4 @@ export const createTokenCookies = (
   }
 };
 
-export const SPOTIFY_UNAUTHORIZED = 4401;
+export const SPOTIFY_UNAUTHORIZED = 498;
