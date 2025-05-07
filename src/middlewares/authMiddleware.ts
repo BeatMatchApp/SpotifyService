@@ -1,7 +1,6 @@
 import { Response, NextFunction, Request } from 'express';
 import { refreshToken } from '../controllers/login';
-
-export const SPOTIFY_UNAUTHORIZED = 4401;
+import { SPOTIFY_UNAUTHORIZED } from '../consts/auth';
 
 export const authMiddleware = async (
   req: Request,

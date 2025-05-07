@@ -7,8 +7,7 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import { createTokenCookies } from '../shared/createTokenCookies';
-import { SPOTIFY_UNAUTHORIZED } from '../middlewares/authMiddleware';
+import { createTokenCookies, SPOTIFY_UNAUTHORIZED } from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
