@@ -7,7 +7,11 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import { createTokenCookies, SPOTIFY_UNAUTHORIZED } from '../consts/auth';
+import {
+  createTokenCookies,
+  getTokenUrlRequestHeaders,
+  SPOTIFY_UNAUTHORIZED,
+} from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
@@ -36,7 +40,7 @@ export const callback = async (req: Request, res: Response) => {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
       }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      { headers: getTokenUrlRequestHeaders() }
     );
 
     const { access_token, refresh_token } = response.data;
@@ -62,9 +66,7 @@ export async function refreshToken(req: Request, res: Response) {
         client_secret: CLIENT_SECRET,
       }),
       {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
+        headers: getTokenUrlRequestHeaders(),
       }
     );
 
