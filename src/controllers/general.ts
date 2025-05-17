@@ -28,8 +28,9 @@ export const getArtists = async (
 
     res.json(artists);
   } catch (error) {
+    console.error('Error searching artists:', error);
     res.status(500).json({
-      error: `Error searching artist: ${error.response?.data || error}`,
+      error: `Error searching artist: ${error.response?.statusText || error}`,
     });
   }
 };
@@ -47,12 +48,15 @@ export const getGenres = async (req: Request, res: Response): Promise<void> => {
     console.error('Error searching genres:', error);
 
     res.status(500).json({
-      error: `Error getting genres: ${error.message || error}`,
+      error: `Error getting genres: ${error.response?.statusText || error}`,
     });
   }
 };
 
-export const getSongOptions = async (req: Request, res: Response) => {
+export const getSongOptions = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const searchedTrack: string = req.body.query;
 
   if (!searchedTrack) {
@@ -62,12 +66,16 @@ export const getSongOptions = async (req: Request, res: Response) => {
   try {
     const tracks: SpotifyTrack[] = await searchTracks(req, searchedTrack);
 
-    const results = tracks.map((track: SpotifyTrack) => track.name);
+    const results: Set<string> = new Set(
+      tracks.map((track: SpotifyTrack) => track.name)
+    );
 
     res.json(results);
   } catch (error) {
     console.error('Error searching songs:', error);
 
-    res.status(500).json({ error: 'Failed to search for songs' });
+    res.status(500).json({
+      error: `Error getting songs: ${error.response?.statusText || error}`,
+    });
   }
 };
