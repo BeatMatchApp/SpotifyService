@@ -66,8 +66,8 @@ export const getSongOptions = async (
   try {
     const tracks: SpotifyTrack[] = await searchTracks(req, searchedTrack);
 
-    const results: Set<string> = new Set(
-      tracks.map((track: SpotifyTrack) => track.name)
+    const results: string[] = Array.from(
+      new Set(tracks.map((track: SpotifyTrack) => track.name))
     );
 
     res.json(results);
