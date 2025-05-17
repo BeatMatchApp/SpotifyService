@@ -7,7 +7,11 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import { HOUR, MONTH } from '../consts/general';
+import {
+  createTokenCookies,
+  getTokenUrlRequestHeaders,
+  SPOTIFY_UNAUTHORIZED,
+} from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
@@ -36,27 +40,46 @@ export const callback = async (req: Request, res: Response) => {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
       }),
-      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+      { headers: getTokenUrlRequestHeaders() }
     );
 
-    const { access_token, resresh_token } = response.data;
+    const { access_token, refresh_token } = response.data;
 
-    res.cookie('spotify_access_token', access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: HOUR,
-    });
-
-    res.cookie('spotify_refresh_token', resresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: MONTH,
-    });
+    createTokenCookies(res, access_token, refresh_token);
 
     res.redirect(`${envVariables.beatMatchURL}/login`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
 };
+
+export async function refreshToken(req: Request, res: Response) {
+  const refreshToken = req.cookies.spotify_refresh_token;
+
+  try {
+    const response = await axios.post(
+      SPOTIFY_TOKEN_URL,
+      querystring.stringify({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+      {
+        headers: getTokenUrlRequestHeaders(),
+      }
+    );
+
+    const { access_token } = response.data;
+
+    createTokenCookies(res, access_token);
+
+    req.cookies.spotify_access_token = access_token;
+
+    return response.data;
+  } catch (error) {
+    res
+      .status(SPOTIFY_UNAUTHORIZED)
+      .json({ error: "Failed to refresh spotify's access token" });
+  }
+}
