@@ -11,9 +11,10 @@ export const getArtists = async (
   res: Response
 ): Promise<void> => {
   try {
-    const artist: string = encodeURIComponent(req.body.query);
+    const searchedArtist: string = encodeURIComponent(req.body.query);
+
     const response = await axios.get(
-      `${SPOTIFY_API_URL}/search?q=${artist}&type=artist&limit=15`,
+      `${SPOTIFY_API_URL}/search?q=${searchedArtist}&type=artist&limit=10`,
       { headers: generateSpotifyHeaders(req) }
     );
 
@@ -22,7 +23,7 @@ export const getArtists = async (
     const artists: string[] = data.artists.items
       .map((artist: any) => artist.name)
       .filter((name: string) =>
-        name.toLowerCase().includes(artist.toLowerCase())
+        name.toLowerCase().includes(searchedArtist.toLowerCase())
       );
 
     res.json(artists);
@@ -35,12 +36,10 @@ export const getArtists = async (
 
 export const getGenres = async (req: Request, res: Response): Promise<void> => {
   try {
-    const query: string = encodeURIComponent(
-      req.body.query
-    ).toLocaleLowerCase();
+    const searchedGenre: string = encodeURIComponent(req.body.query);
 
     const filteredGenres = GENRE_SEEDS.filter((genre: string) =>
-      genre.toLocaleLowerCase().startsWith(query)
+      genre.toLocaleLowerCase().startsWith(searchedGenre.toLocaleLowerCase())
     ).slice(0, 14);
 
     res.json(filteredGenres);
@@ -54,14 +53,14 @@ export const getGenres = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getSongOptions = async (req: Request, res: Response) => {
-  const query: string = req.body.query;
+  const searchedTrack: string = req.body.query;
 
-  if (!query) {
+  if (!searchedTrack) {
     return res.status(400).json({ error: 'Missing search query' });
   }
 
   try {
-    const tracks: SpotifyTrack[] = await searchTracks(req, query);
+    const tracks: SpotifyTrack[] = await searchTracks(req, searchedTrack);
 
     const results = tracks.map((track: SpotifyTrack) => track.name);
 
