@@ -1,5 +1,5 @@
 import { Response, NextFunction, Request } from 'express';
-import { refreshToken } from '../controllers/login';
+import { refreshToken } from '../controllers/auth';
 
 export const authMiddleware = async (
   req: Request,
