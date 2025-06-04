@@ -1,6 +1,5 @@
 import { Response, NextFunction, Request } from 'express';
-import { refreshToken } from '../controllers/login';
-import { SPOTIFY_UNAUTHORIZED } from '../consts/auth';
+import { refreshToken } from '../controllers/auth';
 
 export const authMiddleware = async (
   req: Request,
@@ -13,7 +12,7 @@ export const authMiddleware = async (
 
     if (!spotifyAccessToken && !spotifyRefreshToken) {
       return res
-        .status(SPOTIFY_UNAUTHORIZED)
+        .status(401)
         .json({ message: 'Spotify tokens missing or expired' });
     }
 
@@ -24,7 +23,7 @@ export const authMiddleware = async (
     next();
   } catch (error) {
     return res
-      .status(SPOTIFY_UNAUTHORIZED)
+      .status(401)
       .json({ message: 'Error while spotify auth proccess', error });
   }
 };

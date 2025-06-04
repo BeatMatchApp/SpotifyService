@@ -7,11 +7,7 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import {
-  createTokenCookies,
-  getTokenUrlRequestHeaders,
-  SPOTIFY_UNAUTHORIZED,
-} from '../consts/auth';
+import { createTokenCookies, getTokenUrlRequestHeaders } from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
@@ -54,7 +50,7 @@ export const callback = async (req: Request, res: Response) => {
 };
 
 export async function refreshToken(req: Request, res: Response) {
-  const refreshToken = req.cookies.spotify_refresh_token;
+  const refreshToken = req.body.refreshToken;
 
   try {
     const response = await axios.post(
@@ -72,14 +68,8 @@ export async function refreshToken(req: Request, res: Response) {
 
     const { access_token } = response.data;
 
-    createTokenCookies(res, access_token);
-
-    req.cookies.spotify_access_token = access_token;
-
-    return response.data;
+    res.status(200).json({ accessToken: access_token });
   } catch (error) {
-    res
-      .status(SPOTIFY_UNAUTHORIZED)
-      .json({ error: "Failed to refresh spotify's access token" });
+    res.status(401).json({ error: "Failed to refresh spotify's access token" });
   }
 }
