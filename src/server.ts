@@ -6,6 +6,7 @@ import https from 'https';
 
 createServer().then((app) => {
   const port: number = envVariables.port;
+  console.log('creating server on port ', port);
 
   let server: Server;
 
