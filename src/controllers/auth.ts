@@ -15,13 +15,21 @@ const REDIRECT_URI = envVariables.redirectURI;
 
 export const login = (_req: Request, res: Response) => {
   console.log('login spotify before redirect. redirect to:', SPOTIFY_AUTH_URL);
-  const authQuery = querystring.stringify({
-    response_type: 'code',
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    scope: USER_GRANT_PERMISSIONS.join(' '),
-  });
-  res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
+
+  try {
+    const authQuery = querystring.stringify({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      scope: USER_GRANT_PERMISSIONS.join(' '),
+    });
+
+    console.log('auth query to spotify: ', authQuery);
+
+    res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
+  } catch (err) {
+    console.log('error', err);
+  }
 };
 
 export const callback = async (req: Request, res: Response) => {
