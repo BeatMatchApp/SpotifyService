@@ -16,7 +16,7 @@ createServer().then((app) => {
       key: fs.readFileSync('./client-key.pem'),
       cert: fs.readFileSync('./client-cert.pem'),
     };
-    server = https.createServer(certs, app);
+    server = http.createServer(app);
   }
 
   server = server
