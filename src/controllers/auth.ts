@@ -57,7 +57,7 @@ export const callback = async (req: Request, res: Response) => {
 
     createTokenCookies(res, access_token, refresh_token);
 
-    console.log('after cookies', res.cookies);
+    console.log('after cookies', res.getHeaders());
 
     res.redirect(`${envVariables.beatMatchURL}/login`);
   } catch (error) {
