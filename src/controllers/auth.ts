@@ -57,6 +57,8 @@ export const callback = async (req: Request, res: Response) => {
 
     createTokenCookies(res, access_token, refresh_token);
 
+    console.log('after cookies', res.cookies);
+
     res.redirect(`${envVariables.beatMatchURL}/login`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
