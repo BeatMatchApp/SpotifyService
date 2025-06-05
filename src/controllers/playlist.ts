@@ -35,7 +35,7 @@ export const addSong = async (req: Request, res: Response) => {
   }
 
   try {
-    const trackUri: string = await getTrackUri(req, {
+    const trackUri: string | null = await getTrackUri(req, {
       songName,
       artist,
     });

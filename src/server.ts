@@ -5,7 +5,7 @@ import https from 'https';
 import { envVariables } from './config/config';
 
 createServer().then((app) => {
-  const port: string = process.env.PORT;
+  const port: number = envVariables.port;
 
   let server: Server;
 
