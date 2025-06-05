@@ -4,6 +4,8 @@ import http, { Server } from 'http';
 import fs from 'fs';
 import https from 'https';
 
+console.log('🟢 Spotify server is starting...');
+
 createServer().then((app) => {
   const port: number = envVariables.port;
   console.log('creating server on port ', port);
