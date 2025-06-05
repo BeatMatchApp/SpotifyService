@@ -35,6 +35,8 @@ export const login = (_req: Request, res: Response) => {
 export const callback = async (req: Request, res: Response) => {
   const code = req.query.code;
 
+  console.log('code of spotify', code);
+
   try {
     const response = await axios.post(
       SPOTIFY_TOKEN_URL,
@@ -49,6 +51,9 @@ export const callback = async (req: Request, res: Response) => {
     );
 
     const { access_token, refresh_token } = response.data;
+    console.log('access_token', access_token);
+
+    console.log('responseData', response.data);
 
     createTokenCookies(res, access_token, refresh_token);
 
