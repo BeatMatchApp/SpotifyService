@@ -8,6 +8,6 @@ export const envVariables = {
   clientId: process.env.SPOTIFY_CLIENT_ID,
   clientSecret: process.env.SPOTIFY_CLIENT_SECRET,
   redirectURI: process.env.SPOTIFY_REDIRECT_URI,
-  beatMatchURL: process.env.BEATMATCH_CLIENT_URL,
+  beatMatchURL: process.env.BEATMATCH_SERVER_URL,
   secureCookie: process.env.SECURE_COOKIE || false,
 };
