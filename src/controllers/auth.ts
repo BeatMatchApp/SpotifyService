@@ -59,7 +59,7 @@ export const callback = async (req: Request, res: Response) => {
 
     console.log('after cookies', res.getHeaders());
 
-    res.redirect(`${envVariables.beatMatchURL}/login`);
+    res.redirect(`${envVariables.beatMatchURL}/loginPage`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
