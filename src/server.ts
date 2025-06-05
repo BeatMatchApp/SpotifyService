@@ -12,11 +12,11 @@ createServer().then((app) => {
   if (envVariables.nodeEnv !== 'production') {
     server = http.createServer(app);
   } else {
-    const certs = {
-      key: fs.readFileSync('./client-key.pem'),
-      cert: fs.readFileSync('./client-cert.pem'),
-    };
-    server = https.createServer(certs, app);
+    // const certs = {
+    //   key: fs.readFileSync('./client-key.pem'),
+    //   cert: fs.readFileSync('./client-cert.pem'),
+    // };
+    server = http.createServer(app);
   }
 
   server = server
