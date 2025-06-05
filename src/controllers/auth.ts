@@ -14,6 +14,7 @@ const CLIENT_SECRET = envVariables.clientSecret;
 const REDIRECT_URI = envVariables.redirectURI;
 
 export const login = (_req: Request, res: Response) => {
+  console.log('login spotify before redirect. redirect to:', SPOTIFY_AUTH_URL);
   const authQuery = querystring.stringify({
     response_type: 'code',
     client_id: CLIENT_ID,
