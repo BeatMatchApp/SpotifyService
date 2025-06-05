@@ -10,6 +10,10 @@ const createServer = async (): Promise<Express> => {
     const app = express();
 
     app.use(cors({ origin: envVariables.beatMatchURL, credentials: true }));
+    app.use((req, _res, next) => {
+      console.log('Incoming request:', req.method, req.originalUrl);
+      next();
+    });
     app.use(express.json());
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
