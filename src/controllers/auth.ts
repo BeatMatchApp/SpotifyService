@@ -36,7 +36,9 @@ export const getAuthTokens = async (req: Request, res: Response) => {
   const code = req.body.code;
 
   if (!code) {
-    return res.status(400).json({ error: 'Missing code' });
+    res.status(400).json({ error: 'Missing code' });
+
+    return;
   }
 
   try {
@@ -53,7 +55,6 @@ export const getAuthTokens = async (req: Request, res: Response) => {
     );
 
     const { access_token, refresh_token } = response.data;
-    console.log('access_token', access_token);
 
     res
       .status(200)
