@@ -11,6 +11,7 @@ export const getArtists = async (
   res: Response
 ): Promise<void> => {
   try {
+    console.log('Searching artists with query:', req.body.query);
     const searchedArtist: string = encodeURIComponent(req.body.query);
 
     const response = await axios.get(
@@ -20,11 +21,15 @@ export const getArtists = async (
 
     const data = await response.data;
 
+    console.log('Artists search response:', data);
+
     const artists: string[] = data.artists.items
       .map((artist: any) => artist.name)
       .filter((name: string) =>
         name.toLowerCase().includes(searchedArtist.toLowerCase())
       );
+
+    console.log('Filtered artists:', artists);
 
     res.json(artists);
   } catch (error) {
