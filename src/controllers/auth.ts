@@ -14,8 +14,6 @@ const CLIENT_SECRET = envVariables.clientSecret;
 const REDIRECT_URI = envVariables.redirectURI;
 
 export const login = (_req: Request, res: Response) => {
-  console.log('login spotify before redirect. redirect to:', SPOTIFY_AUTH_URL);
-
   try {
     const authQuery = querystring.stringify({
       response_type: 'code',
@@ -23,8 +21,6 @@ export const login = (_req: Request, res: Response) => {
       redirect_uri: REDIRECT_URI,
       scope: USER_GRANT_PERMISSIONS.join(' '),
     });
-
-    console.log('auth query to spotify: ', authQuery);
 
     res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
   } catch (err) {

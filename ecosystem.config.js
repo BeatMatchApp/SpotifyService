@@ -2,15 +2,15 @@ module.exports = {
   apps: [
     {
       name: 'spotify_server_app',
-      script: './dist/server.js', // ✅ compiled JS file
-      cwd: './', // ✅ makes sure paths resolve from your project root
+      script: './dist/server.js',
+      cwd: './',
       env: {
         NODE_ENV: 'development',
-        PORT: 4001, // optional: for dev
+        PORT: 4001,
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 4001, // ✅ define PORT explicitly if not in .env
+        PORT: 4001,
       },
     },
   ],

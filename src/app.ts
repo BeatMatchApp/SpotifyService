@@ -8,10 +8,6 @@ const createServer = async (): Promise<Express> => {
   try {
     const app = express();
 
-    app.use(
-      cors({ origin: envVariables.beatMatchServerURL, credentials: true })
-    );
-
     const allowedOrigins = [
       envVariables.beatMatchServerURL,
       envVariables.beatMatchClientURL,
