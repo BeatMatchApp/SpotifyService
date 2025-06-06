@@ -54,7 +54,7 @@ export const getTrackUri = async (
     const chosenTrackUri: SpotifyTrack[] =
       posibbleSongsResponse.tracks.items.filter(
         (item: SpotifyTrack) =>
-          item.name.toLowerCase() === name.toLowerCase() &&
+          item.name.toLowerCase().includes(name.toLowerCase()) &&
           item.artists
             .map((artist: SpotifyArtist) => artist.name.toLowerCase())
             .includes(artist.toLowerCase())
