@@ -8,7 +8,28 @@ const createServer = async (): Promise<Express> => {
   try {
     const app = express();
 
-    app.use(cors({ origin: envVariables.beatMatchURL, credentials: true }));
+    app.use(
+      cors({ origin: envVariables.beatMatchServerURL, credentials: true })
+    );
+
+    const allowedOrigins = [
+      envVariables.beatMatchServerURL,
+      envVariables.beatMatchClientURL,
+    ];
+
+    app.use(
+      cors({
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
+        credentials: true,
+      })
+    );
+
     app.use((req, _res, next) => {
       console.log('Incoming request:', req.method, req.originalUrl);
       next();
