@@ -33,6 +33,40 @@ export const login = (_req: Request, res: Response) => {
   }
 };
 
+export const getAuthTokens = async (req: Request, res: Response) => {
+  const code = req.body.code;
+
+  if (!code) {
+    return res.status(400).json({ error: 'Missing code' });
+  }
+
+  try {
+    const response = await axios.post(
+      SPOTIFY_TOKEN_URL,
+      querystring.stringify({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: REDIRECT_URI,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+      }),
+      { headers: getTokenUrlRequestHeaders() }
+    );
+
+    const { access_token, refresh_token } = response.data;
+    console.log('access_token', access_token);
+
+    res
+      .status(200)
+      .json({ accessToken: access_token, refreshToken: refresh_token });
+    return;
+    // callbackRedirect(refresh_token, access_token);
+    // res.redirect(`${envVariables.beatMatchURL}/loginPage`);
+  } catch (error) {
+    res.status(400).json({ error: "Failed to get spotify's access token" });
+  }
+};
+
 export const callback = async (req: Request, res: Response) => {
   const code = req.query.code;
 
@@ -60,8 +94,8 @@ export const callback = async (req: Request, res: Response) => {
 
     console.log('after cookies', res.getHeaders());
 
-    // callbackRedirect(refresh_token, access_token);
-    res.redirect(`${envVariables.beatMatchURL}/loginPage`);
+    callbackRedirect(refresh_token, access_token);
+    // res.redirect(`${envVariables.beatMatchURL}/loginPage`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
