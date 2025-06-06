@@ -29,7 +29,7 @@ export const createTokenCookies = (
   res.cookie('spotify_access_token', accessToken, {
     httpOnly: true,
     secure: true,
-    sameSite: 'None',
+    sameSite: 'none',
     maxAge: HOUR,
   });
 
@@ -37,7 +37,7 @@ export const createTokenCookies = (
     res.cookie('spotify_refresh_token', refreshToken, {
       httpOnly: true,
       secure: true,
-      sameSite: 'None',
+      sameSite: 'none',
       maxAge: MONTH,
     });
   }

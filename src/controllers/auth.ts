@@ -8,6 +8,7 @@ import {
 import axios from 'axios';
 import { envVariables } from '../config/config';
 import { createTokenCookies, getTokenUrlRequestHeaders } from '../consts/auth';
+import { callbackRedirect } from '../beatMatchServerService';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
@@ -59,6 +60,7 @@ export const callback = async (req: Request, res: Response) => {
 
     console.log('after cookies', res.getHeaders());
 
+    // callbackRedirect(refresh_token, access_token);
     res.redirect(`${envVariables.beatMatchURL}/loginPage`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
