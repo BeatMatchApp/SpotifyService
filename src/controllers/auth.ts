@@ -7,8 +7,7 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import { createTokenCookies, getTokenUrlRequestHeaders } from '../consts/auth';
-import { callbackRedirect } from '../beatMatchServerService';
+import { getTokenUrlRequestHeaders } from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
@@ -59,43 +58,8 @@ export const getAuthTokens = async (req: Request, res: Response) => {
     res
       .status(200)
       .json({ accessToken: access_token, refreshToken: refresh_token });
+
     return;
-    // callbackRedirect(refresh_token, access_token);
-    // res.redirect(`${envVariables.beatMatchURL}/loginPage`);
-  } catch (error) {
-    res.status(400).json({ error: "Failed to get spotify's access token" });
-  }
-};
-
-export const callback = async (req: Request, res: Response) => {
-  const code = req.query.code;
-
-  console.log('code of spotify', code);
-
-  try {
-    const response = await axios.post(
-      SPOTIFY_TOKEN_URL,
-      querystring.stringify({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: REDIRECT_URI,
-        client_id: CLIENT_ID,
-        client_secret: CLIENT_SECRET,
-      }),
-      { headers: getTokenUrlRequestHeaders() }
-    );
-
-    const { access_token, refresh_token } = response.data;
-    console.log('access_token', access_token);
-
-    console.log('responseData', response.data);
-
-    createTokenCookies(res, access_token, refresh_token);
-
-    console.log('after cookies', res.getHeaders());
-
-    callbackRedirect(refresh_token, access_token);
-    // res.redirect(`${envVariables.beatMatchURL}/loginPage`);
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
