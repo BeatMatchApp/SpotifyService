@@ -1,4 +1,4 @@
 export interface TrackDetails {
-  songName: string;
+  name: string;
   artist: string;
 }

@@ -1,13 +1,9 @@
 import axios from 'axios';
 import { Request, Response } from 'express';
 import { SPOTIFY_API_URL } from '../consts/spotify';
-import {
-  SpotifyArtist,
-  SpotifySearchResponse,
-  SpotifyTrack,
-} from '../models/interfaces/SpotifySearch';
-import { TrackDetails } from '../models/interfaces/Track';
 import { generateSpotifyHeaders } from '../consts/auth';
+import { getTrackUri } from '../functions/tracks';
+import { TrackDetails } from '../models/interfaces/Track';
 
 export const createPlaylist = async (req: Request, res: Response) => {
   const { userId, playlistName } = req.body;
@@ -36,7 +32,7 @@ export const addSong = async (req: Request, res: Response) => {
 
   try {
     const trackUri: string = await getTrackUri(req, {
-      songName,
+      name: songName,
       artist,
     });
 
@@ -57,33 +53,33 @@ export const addSong = async (req: Request, res: Response) => {
   }
 };
 
-const getTrackUri = async (
-  req: Request,
-  trackDetails: TrackDetails
-): Promise<string | null> => {
-  const { songName, artist } = trackDetails;
+export const validatePlaylist = async (req: Request, res: Response) => {
+  const { songsList, accessToken } = req.body;
+
+  if (!Array.isArray(songsList)) {
+    return res.status(400).json({ error: 'Missing or invalid songs list' });
+  }
 
   try {
-    const response = await axios.get<SpotifySearchResponse>(
-      `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
-        `track:${songName} artist:${artist}`
-      )}&type=track&limit=5`,
-      { headers: generateSpotifyHeaders(req) }
+    const validationResults = await Promise.all(
+      songsList.map(async (song: TrackDetails) => {
+        const trackUri: string | null = await getTrackUri(
+          req,
+          song,
+          accessToken
+        );
+
+        return trackUri ? song : null;
+      })
     );
 
-    const posibbleSongsResponse: SpotifySearchResponse = response.data;
+    const validSongs = validationResults.filter(
+      (song: TrackDetails) => song !== null
+    );
 
-    const chosenTrackUri: SpotifyTrack[] =
-      posibbleSongsResponse.tracks.items.filter(
-        (item: SpotifyTrack) =>
-          item.name.toLowerCase() === songName.toLowerCase() &&
-          item.artists
-            .map((artist: SpotifyArtist) => artist.name.toLowerCase())
-            .includes(artist.toLowerCase())
-      );
-
-    return chosenTrackUri?.[0]?.uri;
+    res.json({ data: validSongs });
   } catch (error) {
-    throw new Error(`Error searching song: ${error.response?.data || error}`);
+    console.error('Error validating playlist:', error);
+    res.status(500).json({ error: 'Failed to validate playlist' });
   }
 };
