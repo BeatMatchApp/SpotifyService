@@ -24,7 +24,7 @@ export const login = (_req: Request, res: Response) => {
 
     res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
   } catch (err) {
-    console.log('error', err);
+    console.error('error redirecting to spotify page', err);
   }
 };
 
