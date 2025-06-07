@@ -1,11 +1,11 @@
+import { envVariables } from './config/config';
 import createServer from './app';
 import http, { Server } from 'http';
 import fs from 'fs';
 import https from 'https';
-import { envVariables } from './config/config';
 
 createServer().then((app) => {
-  const port: string = process.env.PORT;
+  const port: number = envVariables.port;
 
   let server: Server;
 
@@ -13,9 +13,10 @@ createServer().then((app) => {
     server = http.createServer(app);
   } else {
     const certs = {
-      key: fs.readFileSync('./cert.pem'),
-      cert: fs.readFileSync('./cert.pem'),
+      key: fs.readFileSync('./client-key.pem'),
+      cert: fs.readFileSync('./client-cert.pem'),
     };
+
     server = https.createServer(certs, app);
   }
 

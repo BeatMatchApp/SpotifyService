@@ -2,20 +2,34 @@ import cors from 'cors';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseRouter from './routes/index';
-import { callback } from './controllers/auth';
+import { envVariables } from './config/config';
 
 const createServer = async (): Promise<Express> => {
   try {
     const app = express();
 
+    const allowedOrigins = [
+      envVariables.beatMatchServerURL,
+      envVariables.beatMatchClientURL,
+    ];
+
     app.use(
-      cors({ origin: process.env.BEATMATCH_CLIENT_URL, credentials: true })
+      cors({
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
+        credentials: true,
+      })
     );
+
     app.use(express.json());
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
 
-    app.use('/callback', callback);
     app.use('/spotifyAPI', BaseRouter);
 
     return app;

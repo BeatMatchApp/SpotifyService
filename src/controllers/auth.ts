@@ -7,24 +7,35 @@ import {
 } from '../consts/spotify';
 import axios from 'axios';
 import { envVariables } from '../config/config';
-import { createTokenCookies, getTokenUrlRequestHeaders } from '../consts/auth';
+import { getTokenUrlRequestHeaders } from '../consts/auth';
 
 const CLIENT_ID = envVariables.clientId;
 const CLIENT_SECRET = envVariables.clientSecret;
 const REDIRECT_URI = envVariables.redirectURI;
 
 export const login = (_req: Request, res: Response) => {
-  const authQuery = querystring.stringify({
-    response_type: 'code',
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
-    scope: USER_GRANT_PERMISSIONS.join(' '),
-  });
-  res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
+  try {
+    const authQuery = querystring.stringify({
+      response_type: 'code',
+      client_id: CLIENT_ID,
+      redirect_uri: REDIRECT_URI,
+      scope: USER_GRANT_PERMISSIONS.join(' '),
+    });
+
+    res.redirect(`${SPOTIFY_AUTH_URL}?${authQuery}`);
+  } catch (err) {
+    console.error('error redirecting to spotify page', err);
+  }
 };
 
-export const callback = async (req: Request, res: Response) => {
-  const code = req.query.code;
+export const getAuthTokens = async (req: Request, res: Response) => {
+  const code = req.body.code;
+
+  if (!code) {
+    res.status(400).json({ error: 'Missing code' });
+
+    return;
+  }
 
   try {
     const response = await axios.post(
@@ -41,9 +52,11 @@ export const callback = async (req: Request, res: Response) => {
 
     const { access_token, refresh_token } = response.data;
 
-    createTokenCookies(res, access_token, refresh_token);
+    res
+      .status(200)
+      .json({ accessToken: access_token, refreshToken: refresh_token });
 
-    res.redirect(`${envVariables.beatMatchURL}/login`);
+    return;
   } catch (error) {
     res.status(400).json({ error: "Failed to get spotify's access token" });
   }
