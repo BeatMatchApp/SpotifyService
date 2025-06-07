@@ -26,10 +26,6 @@ const createServer = async (): Promise<Express> => {
       })
     );
 
-    app.use((req, _res, next) => {
-      console.log('Incoming request:', req.method, req.originalUrl);
-      next();
-    });
     app.use(express.json());
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
