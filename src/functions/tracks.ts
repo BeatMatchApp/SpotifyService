@@ -29,39 +29,41 @@ export const searchTracks = async (
 };
 
 export const getTrackUri = async (
-  req: Request,
-  trackDetails: TrackDetails,
-  accessToken?: string
+    req: Request,
+    trackDetails: TrackDetails
 ): Promise<string | null> => {
   const { name, artist } = trackDetails;
 
   try {
     const response = await axios.get<SpotifySearchResponse>(
-      `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
-        `track:${name} artist:${artist}`
-      )}&type=track&limit=5`,
-      {
-        headers: accessToken
-          ? {
-              Authorization: `Bearer ${accessToken}`,
-            }
-          : generateSpotifyHeaders(req),
-      }
+        `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
+            `track:${name} artist:${artist}`
+        )}&type=track&limit=5`,
+        { headers: generateSpotifyHeaders(req) }
     );
 
-    const posibbleSongsResponse: SpotifySearchResponse = response.data;
+    const tracks = response.data.tracks.items;
+    console.log('Found tracks:', tracks.length);
 
-    const chosenTrackUri: SpotifyTrack[] =
-      posibbleSongsResponse.tracks.items.filter(
-        (item: SpotifyTrack) =>
-          item.name.toLowerCase().includes(name.toLowerCase()) &&
-          item.artists
-            .map((artist: SpotifyArtist) => artist.name.toLowerCase())
-            .includes(artist.toLowerCase())
+    const matchingTracks = tracks.filter((track: SpotifyTrack) => {
+      const trackNameMatches = track.name.toLowerCase().includes(name.toLowerCase());
+
+      const artistMatches = track.artists.some((artistObj: SpotifyArtist) =>
+          artistObj.name.toLowerCase().includes(artist.toLowerCase())
       );
 
-    return chosenTrackUri?.[0]?.uri;
+      return trackNameMatches && artistMatches;
+    });
+
+    console.log('Matching tracks:', matchingTracks.length);
+
+    if (matchingTracks.length > 0) {
+      return matchingTracks[0].uri;
+    }
+
+    return null;
   } catch (error) {
-    throw new Error(`Error searching song: ${error}`);
+    console.error('Error searching song:', error.response?.data || error);
+    throw new Error(`Error searching song: ${error.response?.data || error}`);
   }
 };

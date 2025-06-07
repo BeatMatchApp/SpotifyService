@@ -3,6 +3,7 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseRouter from './routes/index';
 import { envVariables } from './config/config';
+import {userIdMiddleware} from "./middleware/userIdMiddleware";
 
 const createServer = async (): Promise<Express> => {
   try {
@@ -30,6 +31,8 @@ const createServer = async (): Promise<Express> => {
       console.log('Incoming request:', req.method, req.originalUrl);
       next();
     });
+
+    app.use(userIdMiddleware);
     app.use(express.json());
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));

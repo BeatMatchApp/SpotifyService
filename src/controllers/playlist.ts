@@ -2,84 +2,182 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import { SPOTIFY_API_URL } from '../consts/spotify';
 import { generateSpotifyHeaders } from '../consts/auth';
+import { Playlist } from '../models/interfaces/Playlist';
 import { getTrackUri } from '../functions/tracks';
 import { TrackDetails } from '../models/interfaces/Track';
 
 export const createPlaylist = async (req: Request, res: Response) => {
-  const { userId, playlistName } = req.body;
+  const spotifyUserId = req.spotifyUserId;
+  const { playlistName, songs } = req.body;
 
+  console.log('Creating playlist for user:', spotifyUserId);
   try {
-    const response = await axios.post(
-      `${SPOTIFY_API_URL}/users/${userId}/playlists`,
+    const createResponse = await axios.post(
+      `${SPOTIFY_API_URL}/users/${spotifyUserId}/playlists`,
       { name: playlistName, public: false },
       { headers: generateSpotifyHeaders(req) }
     );
+    
+    const playlistId = createResponse.data.id;
 
-    res.json(response.data);
+    if (Array.isArray(songs) && songs.length > 0) {
+      const trackUriPromises = songs.map(async (song: TrackDetails) => {
+        return await getTrackUri(req, song);
+      });
+  
+      const trackUris = (await Promise.all(trackUriPromises))
+        .filter((uri): uri is string => uri !== null);
+      
+      if (trackUris.length > 0) {
+        await axios.post(
+          `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+          { uris: trackUris },
+          { headers: generateSpotifyHeaders(req) }
+        );
+
+        createResponse.data.tracks_added = trackUris.length;
+        createResponse.data.tracks_not_found = songs.length - trackUris.length;
+      }
+    }
+    
+    res.json(createResponse.data);
   } catch (error) {
+    console.error('Error creating playlist:', error);
     res
       .status(400)
-      .json({ error: `Failed to create playlist for user ${userId}` });
+      .json({ error: `Failed to create playlist for user ${spotifyUserId}` });
   }
 };
 
-export const addSong = async (req: Request, res: Response) => {
-  const { playlistId, songName, artist } = req.body;
+export const addSongs = async (req: Request, res: Response) => {
+  const { playlistId, songs } = req.body;
 
-  if (!playlistId || !songName || !artist) {
-    return res.status(400).json({ error: 'Missing parameters' });
+  if (!playlistId || !Array.isArray(songs) || songs.length === 0) {
+    return res.status(400).json({ error: 'Missing or invalid parameters.' });
   }
 
   try {
-    const trackUri: string = await getTrackUri(req, {
-      name: songName,
-      artist,
+    const trackUriPromises = songs.map(async (song: TrackDetails) => {
+      return await getTrackUri(req, song);
     });
 
-    if (trackUri) {
-      const response = await axios.post(
-        `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-        { uris: [trackUri], public: false },
-        { headers: generateSpotifyHeaders(req) }
-      );
-
-      res.json({ success: true, message: 'Song added!', data: response.data });
-    } else {
-      res.json({ success: false, message: "Song wasn't found", data: null });
+    const trackUris = (await Promise.all(trackUriPromises))
+      .filter((uri): uri is string => uri !== null);
+    
+    if (trackUris.length === 0) {
+      return res.json({ success: false, message: "No valid songs found", data: null });
     }
+
+    const response = await axios.post(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+      { uris: trackUris },
+      { headers: generateSpotifyHeaders(req) }
+    );
+
+    const successCount = trackUris.length;
+    const failedCount = songs.length - successCount;
+
+    res.json({ 
+      success: true, 
+      message: `${successCount} songs added successfully${failedCount > 0 ? `, ${failedCount} songs not found` : ''}`, 
+      data: response.data 
+    });
   } catch (error) {
-    console.error('Error adding song:', error.response?.data || error);
-    res.status(400).json({ error: `Failed to add song to playlist` });
+    console.error('Error adding songs:', error.response?.data || error);
+    res.status(400).json({ error: `Failed to add songs to playlist` });
   }
 };
 
 export const validatePlaylist = async (req: Request, res: Response) => {
-  const { songsList, accessToken } = req.body;
+    const { songsList } = req.body;
 
-  if (!Array.isArray(songsList)) {
-    return res.status(400).json({ error: 'Missing or invalid songs list' });
+    if (!Array.isArray(songsList)) {
+        return res.status(400).json({ error: 'Missing or invalid songs list' });
+    }
+
+    try {
+        const validationResults = await Promise.all(
+            songsList.map(async (song: TrackDetails) => {
+                const trackUri: string | null = await getTrackUri(
+                    req,
+                    song,
+                );
+
+                return trackUri ? song : null;
+            })
+        );
+
+        const validSongs = validationResults.filter(
+            (song: TrackDetails) => song !== null
+        );
+
+        res.json({ data: validSongs });
+    } catch (error) {
+        console.error('Error validating playlist:', error);
+        res.status(500).json({ error: 'Failed to validate playlist' });
+    }
+};
+
+export const getPlaylist = async (req: Request, res: Response) => {
+  const { playlistId } = req.params;
+
+  if (!playlistId) {
+    return res.status(400).json({ error: 'Missing playlist ID' });
   }
 
   try {
-    const validationResults = await Promise.all(
-      songsList.map(async (song: TrackDetails) => {
-        const trackUri: string | null = await getTrackUri(
-          req,
-          song,
-          accessToken
-        );
+    const response = await axios.get(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}`,
+      { headers: generateSpotifyHeaders(req) }
+    );
 
-        return trackUri ? song : null;
+    // Transform the Spotify response into our simplified Playlist format
+    const spotifyPlaylist = response.data;
+    const simplifiedPlaylist: Playlist = {
+      id: spotifyPlaylist.id,
+      name: spotifyPlaylist.name,
+      tracks: spotifyPlaylist.tracks.items.map(item => {
+        const track = item.track;
+        return {
+          songName: track.name,
+          artist: track.artists[0]?.name || 'Unknown Artist'
+        };
       })
-    );
+    };
 
-    const validSongs = validationResults.filter(
-      (song: TrackDetails) => song !== null
-    );
-
-    res.json({ data: validSongs });
+    res.json(simplifiedPlaylist);
   } catch (error) {
-    console.error('Error validating playlist:', error);
-    res.status(500).json({ error: 'Failed to validate playlist' });
+    console.error('Error getting playlist:', error);
+    res
+      .status(error.response?.status || 400)
+      .json({ error: `Failed to get playlist ${playlistId}` });
+  }
+};
+
+export const getPlaylists = async (req: Request, res: Response) => {
+  const spotifyUserId = req.spotifyUserId;
+
+  if (!spotifyUserId) {
+    return res.status(400).json({ error: 'User ID not found' });
+  }
+
+  try {
+    const response = await axios.get(
+      `${SPOTIFY_API_URL}/users/${spotifyUserId}/playlists`,
+      { headers: generateSpotifyHeaders(req) }
+    );
+
+    const simplifiedPlaylists = response.data.items.map(playlist => ({
+      id: playlist.id,
+      name: playlist.name,
+      tracks: []
+    }));
+
+    res.json(simplifiedPlaylists);
+  } catch (error) {
+    console.error('Error getting playlists:', error);
+    res
+      .status(error.response?.status || 400)
+      .json({ error: `Failed to get playlists for user ${spotifyUserId}` });
   }
 };
