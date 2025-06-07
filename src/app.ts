@@ -1,8 +1,9 @@
-import cors from 'cors';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseRouter from './routes/index';
 import { envVariables } from './config/config';
+
+const cors = require('cors');
 
 const createServer = async (): Promise<Express> => {
   try {
