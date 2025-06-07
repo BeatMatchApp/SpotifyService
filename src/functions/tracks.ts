@@ -49,10 +49,10 @@ export const getTrackUri = async (
       }
     );
 
-    const posibbleSongsResponse: SpotifySearchResponse = response.data;
+    const possibleSongsResponse: SpotifySearchResponse = response.data;
 
     const chosenTrackUri: SpotifyTrack[] =
-      posibbleSongsResponse.tracks.items.filter(
+      possibleSongsResponse.tracks.items.filter(
         (item: SpotifyTrack) =>
           item.name.toLowerCase().includes(name.toLowerCase()) &&
           item.artists
