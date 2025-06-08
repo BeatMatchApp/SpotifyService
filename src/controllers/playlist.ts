@@ -10,7 +10,6 @@ export const createPlaylist = async (req: Request, res: Response) => {
   const spotifyUserId = req.spotifyUserId;
   const { playlistName, songs } = req.body;
 
-  console.log('Creating playlist for user:', spotifyUserId);
   try {
     const createResponse = await axios.post(
       `${SPOTIFY_API_URL}/users/${spotifyUserId}/playlists`,
@@ -20,25 +19,16 @@ export const createPlaylist = async (req: Request, res: Response) => {
 
     const playlistId = createResponse.data.id;
 
-    if (Array.isArray(songs) && songs.length > 0) {
-      const trackUriPromises = songs.map(async (song: TrackDetails) => {
-        return await getTrackUri(req, song);
-      });
-
-      const trackUris = (await Promise.all(trackUriPromises)).filter(
-        (uri): uri is string => uri !== null
+    if (Array.isArray(songs) && songs.length) {
+      const trackUris: string[] = songs.map(
+        (song: TrackSpotifyDetails) => song.trackUri
       );
 
-      if (trackUris.length > 0) {
-        await axios.post(
-          `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
-          { uris: trackUris },
-          { headers: generateSpotifyHeaders(req) }
-        );
-
-        createResponse.data.tracks_added = trackUris.length;
-        createResponse.data.tracks_not_found = songs.length - trackUris.length;
-      }
+      await axios.post(
+        `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+        { uris: trackUris },
+        { headers: generateSpotifyHeaders(req) }
+      );
     }
 
     res.json(createResponse.data);
@@ -97,7 +87,7 @@ export const addSongs = async (req: Request, res: Response) => {
 };
 
 export const validatePlaylist = async (req: Request, res: Response) => {
-  const { songsList, accessToken } = req.body;
+  const { songsList } = req.body;
 
   if (!Array.isArray(songsList)) {
     return res.status(400).json({ error: 'Missing or invalid songs list' });
