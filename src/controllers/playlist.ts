@@ -5,6 +5,7 @@ import { generateSpotifyHeaders } from '../consts/auth';
 import { Playlist } from '../models/interfaces/Playlist';
 import { getTrackUri } from '../functions/tracks';
 import { TrackDetails, TrackSpotifyDetails } from '../models/interfaces/Track';
+import { simplifyPlaylist, simplifyPlaylists } from '../utils/playlist';
 
 export const createPlaylist = async (req: Request, res: Response) => {
   const spotifyUserId = req.spotifyUserId;
@@ -17,7 +18,7 @@ export const createPlaylist = async (req: Request, res: Response) => {
       { headers: generateSpotifyHeaders(req) }
     );
 
-    const playlistId = createResponse.data.id;
+    const playlistsResponse = createResponse.data
 
     if (Array.isArray(songs) && songs.length) {
       const trackUris: string[] = songs.map(
@@ -25,13 +26,15 @@ export const createPlaylist = async (req: Request, res: Response) => {
       );
 
       await axios.post(
-        `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+        `${SPOTIFY_API_URL}/playlists/${playlistsResponse.id}/tracks`,
         { uris: trackUris },
         { headers: generateSpotifyHeaders(req) }
       );
     }
 
-    res.json(createResponse.data);
+    const simplifiedPlaylist = simplifyPlaylist(playlistsResponse);
+
+    res.json(simplifiedPlaylist);
   } catch (error) {
     console.error('Error creating playlist:', error);
     res
@@ -129,18 +132,7 @@ export const getPlaylist = async (req: Request, res: Response) => {
     );
 
     // Transform the Spotify response into our simplified Playlist format
-    const spotifyPlaylist = response.data;
-    const simplifiedPlaylist: Playlist = {
-      id: spotifyPlaylist.id,
-      name: spotifyPlaylist.name,
-      tracks: spotifyPlaylist.tracks.items.map((item) => {
-        const track = item.track;
-        return {
-          songName: track.name,
-          artist: track.artists[0]?.name || 'Unknown Artist',
-        };
-      }),
-    };
+    const simplifiedPlaylist = simplifyPlaylist(response.data);
 
     res.json(simplifiedPlaylist);
   } catch (error) {
@@ -164,11 +156,7 @@ export const getPlaylists = async (req: Request, res: Response) => {
       { headers: generateSpotifyHeaders(req) }
     );
 
-    const simplifiedPlaylists = response.data.items.map((playlist) => ({
-      id: playlist.id,
-      name: playlist.name,
-      tracks: [],
-    }));
+    const simplifiedPlaylists = simplifyPlaylists(response.data.items);
 
     res.json(simplifiedPlaylists);
   } catch (error) {
