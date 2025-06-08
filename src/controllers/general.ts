@@ -26,7 +26,7 @@ export const getArtists = async (
         name.toLowerCase().includes(searchedArtist.toLowerCase())
       );
 
-    res.json(artists);
+    return res.json(artists);
   } catch (error) {
     console.error('Error searching artists:', error);
     res.status(500).json({
@@ -43,7 +43,7 @@ export const getGenres = async (req: Request, res: Response): Promise<void> => {
       genre.toLocaleLowerCase().startsWith(searchedGenre.toLocaleLowerCase())
     ).slice(0, 14);
 
-    res.json(filteredGenres);
+    return res.json(filteredGenres);
   } catch (error) {
     console.error('Error searching genres:', error);
 

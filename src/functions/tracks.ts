@@ -29,39 +29,30 @@ export const searchTracks = async (
 };
 
 export const getTrackUri = async (
-    req: Request,
-    trackDetails: TrackDetails
+  req: Request,
+  trackDetails: TrackDetails
 ): Promise<string | null> => {
   const { name, artist } = trackDetails;
 
   try {
     const response = await axios.get<SpotifySearchResponse>(
-        `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
-            `track:${name} artist:${artist}`
-        )}&type=track&limit=5`,
-        { headers: generateSpotifyHeaders(req) }
+      `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
+        `track:${name} artist:${artist}`
+      )}&type=track&limit=5`,
+      { headers: generateSpotifyHeaders(req) }
     );
+    const possibleSongsResponse: SpotifySearchResponse = response.data;
 
-    const tracks = response.data.tracks.items;
-    console.log('Found tracks:', tracks.length);
-
-    const matchingTracks = tracks.filter((track: SpotifyTrack) => {
-      const trackNameMatches = track.name.toLowerCase().includes(name.toLowerCase());
-
-      const artistMatches = track.artists.some((artistObj: SpotifyArtist) =>
-          artistObj.name.toLowerCase().includes(artist.toLowerCase())
+    const chosenTrackUri: SpotifyTrack[] =
+      possibleSongsResponse.tracks.items.filter(
+        (item: SpotifyTrack) =>
+          item.name.toLowerCase().includes(name.toLowerCase()) &&
+          item.artists
+            .map((artist: SpotifyArtist) => artist.name.toLowerCase())
+            .includes(artist.toLowerCase())
       );
 
-      return trackNameMatches && artistMatches;
-    });
-
-    console.log('Matching tracks:', matchingTracks.length);
-
-    if (matchingTracks.length > 0) {
-      return matchingTracks[0].uri;
-    }
-
-    return null;
+    return chosenTrackUri?.[0]?.uri;
   } catch (error) {
     console.error('Error searching song:', error.response?.data || error);
     throw new Error(`Error searching song: ${error.response?.data || error}`);

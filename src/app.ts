@@ -1,9 +1,10 @@
-import cors from 'cors';
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseRouter from './routes/index';
 import { envVariables } from './config/config';
-import {userIdMiddleware} from "./middleware/userIdMiddleware";
+import { userIdMiddleware } from './middleware/userIdMiddleware';
+
+const cors = require('cors');
 
 const createServer = async (): Promise<Express> => {
   try {
@@ -26,11 +27,6 @@ const createServer = async (): Promise<Express> => {
         credentials: true,
       })
     );
-
-    app.use((req, _res, next) => {
-      console.log('Incoming request:', req.method, req.originalUrl);
-      next();
-    });
 
     app.use(userIdMiddleware);
     app.use(express.json());
