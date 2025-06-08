@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { SPOTIFY_API_URL } from '../consts/spotify';
 import { generateSpotifyHeaders } from '../consts/auth';
 import { getTrackUri } from '../functions/tracks';
-import { TrackDetails } from '../models/interfaces/Track';
+import { TrackDetails, TrackSpotifyDetails } from '../models/interfaces/Track';
 
 export const createPlaylist = async (req: Request, res: Response) => {
   const { userId, playlistName } = req.body;
@@ -61,20 +61,22 @@ export const validatePlaylist = async (req: Request, res: Response) => {
   }
 
   try {
-    const validationResults = await Promise.all(
-      songsList.map(async (song: TrackDetails) => {
-        const trackUri: string | null = await getTrackUri(
-          req,
-          song,
-          accessToken
-        );
+    const validationResults: TrackSpotifyDetails[] = await Promise.all(
+      songsList.map(
+        async (song: TrackDetails): Promise<TrackSpotifyDetails | null> => {
+          const trackUri: string | null = await getTrackUri(
+            req,
+            song,
+            accessToken
+          );
 
-        return trackUri ? song : null;
-      })
+          return trackUri ? { ...song, trackUri } : null;
+        }
+      )
     );
 
-    const validSongs = validationResults.filter(
-      (song: TrackDetails) => song !== null
+    const validSongs: TrackSpotifyDetails[] = validationResults.filter(
+      (song: TrackSpotifyDetails) => song !== null
     );
 
     res.json({ data: validSongs });
