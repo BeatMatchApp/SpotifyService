@@ -18,7 +18,7 @@ export const createPlaylist = async (req: Request, res: Response) => {
       { headers: generateSpotifyHeaders(req) }
     );
 
-    const playlistsResponse = createResponse.data
+    const playlistsResponse = createResponse.data;
 
     if (Array.isArray(songs) && songs.length) {
       const trackUris: string[] = songs.map(
@@ -97,7 +97,7 @@ export const validatePlaylist = async (req: Request, res: Response) => {
   }
 
   try {
-    const validationResults: TrackSpotifyDetails[] = await Promise.all(
+    const validationResults: (TrackSpotifyDetails | null)[] = await Promise.all(
       songsList.map(
         async (song: TrackDetails): Promise<TrackSpotifyDetails | null> => {
           const trackUri: string | null = await getTrackUri(req, song);
