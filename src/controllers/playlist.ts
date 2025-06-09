@@ -108,7 +108,7 @@ export const validatePlaylist = async (req: Request, res: Response) => {
     );
 
     const validSongs: TrackSpotifyDetails[] = validationResults.filter(
-      (song: TrackSpotifyDetails) => song !== null
+      (song: TrackSpotifyDetails | null) => song !== null
     );
 
     res.json({ data: validSongs });
