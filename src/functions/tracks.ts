@@ -30,8 +30,7 @@ export const searchTracks = async (
 
 export const getTrackUri = async (
   req: Request,
-  trackDetails: TrackDetails,
-  accessToken?: string
+  trackDetails: TrackDetails
 ): Promise<string | null> => {
   const { name, artist } = trackDetails;
 
@@ -40,15 +39,8 @@ export const getTrackUri = async (
       `${SPOTIFY_API_URL}/search?q=${encodeURIComponent(
         `track:${name} artist:${artist}`
       )}&type=track&limit=5`,
-      {
-        headers: accessToken
-          ? {
-              Authorization: `Bearer ${accessToken}`,
-            }
-          : generateSpotifyHeaders(req),
-      }
+      { headers: generateSpotifyHeaders(req) }
     );
-
     const possibleSongsResponse: SpotifySearchResponse = response.data;
 
     const chosenTrackUri: SpotifyTrack[] =
@@ -62,6 +54,7 @@ export const getTrackUri = async (
 
     return chosenTrackUri?.[0]?.uri;
   } catch (error) {
-    throw new Error(`Error searching song: ${error}`);
+    console.error('Error searching song:', error.response?.data || error);
+    throw new Error(`Error searching song: ${error.response?.data || error}`);
   }
 };

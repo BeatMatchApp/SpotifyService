@@ -2,6 +2,7 @@ import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import BaseRouter from './routes/index';
 import { envVariables } from './config/config';
+import { userIdMiddleware } from './middleware/userIdMiddleware';
 
 const cors = require('cors');
 
@@ -27,6 +28,7 @@ const createServer = async (): Promise<Express> => {
       })
     );
 
+    app.use(userIdMiddleware);
     app.use(express.json());
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
