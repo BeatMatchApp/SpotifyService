@@ -2,7 +2,6 @@ import axios from 'axios';
 import { Request, Response } from 'express';
 import { SPOTIFY_API_URL } from '../consts/spotify';
 import { generateSpotifyHeaders } from '../consts/auth';
-import { Playlist } from '../models/interfaces/Playlist';
 import { getTrackUri } from '../functions/tracks';
 import { TrackDetails, TrackSpotifyDetails } from '../models/interfaces/Track';
 import { simplifyPlaylist, simplifyPlaylists } from '../utils/playlist';
@@ -51,13 +50,8 @@ export const addSongs = async (req: Request, res: Response) => {
   }
 
   try {
-    const trackUriPromises = songs.map(async (song: TrackDetails) => {
-      return await getTrackUri(req, song);
-    });
-
-    const trackUris = (await Promise.all(trackUriPromises)).filter(
-      (uri): uri is string => uri !== null
-    );
+    const trackUris = songs.map((song: TrackSpotifyDetails) => song.trackUri)
+      .filter((uri) => uri !== null && uri !== undefined);
 
     if (trackUris.length === 0) {
       return res.json({
@@ -76,11 +70,11 @@ export const addSongs = async (req: Request, res: Response) => {
     const successCount = trackUris.length;
     const failedCount = songs.length - successCount;
 
+    const message = `${successCount} songs added successfully${failedCount > 0 ? `, ${failedCount} songs not found` : ''}`
+
     res.json({
       success: true,
-      message: `${successCount} songs added successfully${
-        failedCount > 0 ? `, ${failedCount} songs not found` : ''
-      }`,
+      message,
       data: response.data,
     });
   } catch (error) {
@@ -131,7 +125,6 @@ export const getPlaylist = async (req: Request, res: Response) => {
       { headers: generateSpotifyHeaders(req) }
     );
 
-    // Transform the Spotify response into our simplified Playlist format
     const simplifiedPlaylist = simplifyPlaylist(response.data);
 
     res.json(simplifiedPlaylist);

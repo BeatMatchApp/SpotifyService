@@ -1,14 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import axios from 'axios';
 import { generateSpotifyHeaders } from '../consts/auth';
-
-declare global {
-  namespace Express {
-    interface Request {
-      spotifyUserId?: string;
-    }
-  }
-}
+import {SPOTIFY_API_URL} from "../consts/spotify";
 
 export const userIdMiddleware = async (
   req: Request, 
@@ -25,10 +18,9 @@ export const userIdMiddleware = async (
       console.error('No authorization token found in headers');
       return next();
     }
-    const response = await axios.get('https://api.spotify.com/v1/me', { headers });
+    const response = await axios.get(`${SPOTIFY_API_URL}/me`, { headers });
     
     if (response.data && response.data.id) {
-      console.log('User ID:', response.data.id);
       req.spotifyUserId = response.data.id;
     }
 
