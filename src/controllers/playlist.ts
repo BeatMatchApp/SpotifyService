@@ -159,3 +159,38 @@ export const getPlaylists = async (req: Request, res: Response) => {
       .json({ error: `Failed to get playlists for user ${spotifyUserId}` });
   }
 };
+
+export const updatePlaylist = async (req: Request, res: Response) => {
+  const { playlistId, songs } = req.body;
+
+  if (!playlistId || !Array.isArray(songs)) {
+    return res.status(400).json({ error: 'Missing or invalid parameters.' });
+  }
+
+  try {
+    const trackUris = songs.map((song: TrackSpotifyDetails) => song.trackUri)
+      .filter((uri) => uri !== null && uri !== undefined);
+
+    if (trackUris.length === 0) {
+      return res.json({
+        success: false,
+        message: 'No valid songs found',
+        data: null,
+      });
+    }
+
+    const response = await axios.put(
+      `${SPOTIFY_API_URL}/playlists/${playlistId}/tracks`,
+      { uris: trackUris },
+      { headers: generateSpotifyHeaders(req) }
+    );
+
+    res.json({
+        ...response.data,
+        tracks: songs,
+    });
+  } catch (error) {
+    console.error('Error updating playlist:', error.response?.data || error);
+    res.status(error.response?.status || 400).json({ error: 'Failed to update playlist' });
+  }
+};
