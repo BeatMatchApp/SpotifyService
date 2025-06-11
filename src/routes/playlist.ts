@@ -4,7 +4,8 @@ import {
   createPlaylist,
   validatePlaylist,
   getPlaylists,
-  getPlaylist
+  getPlaylist,
+  updatePlaylist
 } from '../controllers/playlist';
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.post('/addSongs', addSongs);
 router.get('/:playlistId', getPlaylist);
 router.get('/', getPlaylists);
 router.post('/validatePlaylist', validatePlaylist);
+router.post('/updatePlaylist', updatePlaylist);
 
 export default router;
