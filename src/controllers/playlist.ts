@@ -50,7 +50,8 @@ export const addSongs = async (req: Request, res: Response) => {
   }
 
   try {
-    const trackUris = songs.map((song: TrackSpotifyDetails) => song.trackUri)
+    const trackUris = songs
+      .map((song: TrackSpotifyDetails) => song.trackUri)
       .filter((uri) => uri !== null && uri !== undefined);
 
     if (trackUris.length === 0) {
@@ -70,7 +71,9 @@ export const addSongs = async (req: Request, res: Response) => {
     const successCount = trackUris.length;
     const failedCount = songs.length - successCount;
 
-    const message = `${successCount} songs added successfully${failedCount > 0 ? `, ${failedCount} songs not found` : ''}`
+    const message = `${successCount} songs added successfully${
+      failedCount > 0 ? `, ${failedCount} songs not found` : ''
+    }`;
 
     res.json({
       success: true,
@@ -168,7 +171,8 @@ export const updatePlaylist = async (req: Request, res: Response) => {
   }
 
   try {
-    const trackUris = songs.map((song: TrackSpotifyDetails) => song.trackUri)
+    const trackUris = songs
+      .map((song: TrackSpotifyDetails) => song.trackUri)
       .filter((uri) => uri !== null && uri !== undefined);
 
     if (trackUris.length === 0) {
@@ -186,11 +190,44 @@ export const updatePlaylist = async (req: Request, res: Response) => {
     );
 
     res.json({
-        ...response.data,
-        tracks: songs,
+      ...response.data,
+      tracks: songs,
     });
   } catch (error) {
     console.error('Error updating playlist:', error.response?.data || error);
-    res.status(error.response?.status || 400).json({ error: 'Failed to update playlist' });
+    res
+      .status(error.response?.status || 400)
+      .json({ error: 'Failed to update playlist' });
+  }
+};
+
+export const deletePlaylist = async (req: Request, res: Response) => {
+  const { spotifyPlaylistId } = req.body;
+
+  if (!spotifyPlaylistId) {
+    return res.status(400).json({ error: 'Missing or invalid parameters.' });
+  }
+
+  try {
+    const response = await axios.delete(
+      `${SPOTIFY_API_URL}/playlists/${spotifyPlaylistId}/followers`,
+      {
+        headers: generateSpotifyHeaders(req),
+      }
+    );
+    if (response.status === 200) {
+      res.json({
+        success: true,
+      });
+    } else {
+      res
+        .status(500)
+        .json({ error: 'Something went wrong with playlist deletion' });
+    }
+  } catch (error) {
+    console.error('Error deleting playlist:', error.response?.data || error);
+    res
+      .status(error.response?.status || 400)
+      .json({ error: 'Failed to delete playlist from spotify' });
   }
 };

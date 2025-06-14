@@ -5,7 +5,8 @@ import {
   validatePlaylist,
   getPlaylists,
   getPlaylist,
-  updatePlaylist
+  updatePlaylist,
+  deletePlaylist,
 } from '../controllers/playlist';
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get('/:playlistId', getPlaylist);
 router.get('/', getPlaylists);
 router.post('/validatePlaylist', validatePlaylist);
 router.post('/updatePlaylist', updatePlaylist);
+router.post('/deletePlaylist', deletePlaylist);
 
 export default router;
