@@ -13,7 +13,7 @@ export const createPlaylist = async (req: Request, res: Response) => {
   try {
     const createResponse = await axios.post(
       `${SPOTIFY_API_URL}/users/${spotifyUserId}/playlists`,
-      { name: playlistName, public: false },
+      { name: playlistName },
       { headers: generateSpotifyHeaders(req) }
     );
 
@@ -114,16 +114,19 @@ export const validatePlaylist = async (req: Request, res: Response) => {
 
 export const getPlaylist = async (req: Request, res: Response) => {
   const { playlistId } = req.params;
+  const spotifyUserId = req.spotifyUserId;
 
   if (!playlistId) {
     return res.status(400).json({ error: 'Missing playlist ID' });
   }
-
   try {
     const response = await axios.get(
       `${SPOTIFY_API_URL}/playlists/${playlistId}`,
       { headers: generateSpotifyHeaders(req) }
     );
+
+    if(response.data.owner.id !== spotifyUserId)
+      return res.status(403).json({ error: 'You do not have access to this playlist' });
 
     const simplifiedPlaylist = simplifyPlaylist(response.data);
 
@@ -148,9 +151,7 @@ export const getPlaylists = async (req: Request, res: Response) => {
       `${SPOTIFY_API_URL}/users/${spotifyUserId}/playlists`,
       { headers: generateSpotifyHeaders(req) }
     );
-
     const simplifiedPlaylists = simplifyPlaylists(response.data.items);
-
     res.json(simplifiedPlaylists);
   } catch (error) {
     console.error('Error getting playlists:', error);
