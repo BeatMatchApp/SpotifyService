@@ -11,12 +11,16 @@ export const getArtists = async (
   res: Response
 ): Promise<void> => {
   try {
-    const searchedArtist: string = encodeURIComponent(req.body.query);
+    const searchedArtist: string = req.body.query;
 
-    const response = await axios.get(
-      `${SPOTIFY_API_URL}/search?q=${searchedArtist}&type=artist&limit=10`,
-      { headers: generateSpotifyHeaders(req) }
-    );
+    const response = await axios.get(`${SPOTIFY_API_URL}/search`, {
+      headers: generateSpotifyHeaders(req),
+      params: {
+        q: searchedArtist,
+        type: 'artist',
+        limit: 10,
+      },
+    });
 
     const data = await response.data;
 
